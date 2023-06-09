@@ -2,6 +2,8 @@
 
 完成模型训练和预测可以参考[tutorial.ipynb](tutorial.ipynb)
 
+需要在根目录创建logs文件夹，用于记录训练过程。
+
 需要在根目录创建data文件夹存放空间转录组数据，我的data文件夹已上传至[google drive](https://drive.google.com/drive/folders/1Gc8KkX8D7Wdem_suglcaB4vsZ1Udj86r?usp=drive_link)
 
 其中包含的数据集如下所示
