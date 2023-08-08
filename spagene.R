@@ -13,7 +13,7 @@ library(SpaGene)
 # num:default=200 # nolint
 
 dirname <- args[1]
-num <- ifelse(length(args) == 1, 200, args[2])
+num <- ifelse(length(args) == 1, 200, as.integer(args[2]))
 
 # 2. Read ------------------------
 count_path <- paste(dirname, "count.h5", sep = "/")

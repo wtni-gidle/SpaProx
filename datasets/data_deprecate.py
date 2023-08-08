@@ -2,7 +2,7 @@ from typing import Tuple, Optional
 import numpy as np
 from itertools import combinations, product
 from sklearn.model_selection import train_test_split
-from datapre import utils
+from . import utils
 from anndata import AnnData
 
 
