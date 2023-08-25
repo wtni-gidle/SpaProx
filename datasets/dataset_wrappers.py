@@ -3,8 +3,15 @@ import torch
 from torch.utils.data import Dataset
 from .data_process import LabeledDataUnit, LabeledDataDoublet, UnlabeledDataUnit, UnlabeledDataDoublet
 
-# todo 可以尝试一下多切片的训练，可以参考celery
+
+# *可以使用以下方式加载多个切片
+# *ConcatDataset([ds1, ds2])
+
 class LabeledDataset(Dataset):
+    """
+    Labeled dataset as input of DataLoader.
+    It is initialized using LabeledDataUnit or LabeledDataDoublet.
+    """
     def __init__(self, ldp: Union[LabeledDataUnit, LabeledDataDoublet]) -> None:
         self.ldp = ldp
     
@@ -25,6 +32,10 @@ class LabeledDataset(Dataset):
 
 
 class UnlabeledDataset(Dataset):
+    """
+    Unlabeled dataset as input of DataLoader.
+    It is initialized using UnlabeledDataUnit or UnlabeledDataDoublet.
+    """
     def __init__(self, udp: Union[UnlabeledDataUnit, UnlabeledDataDoublet]) -> None:
         self.udp = udp
 

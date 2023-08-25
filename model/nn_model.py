@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 from model.utils import DeviceDataLoader, Accumulator
 from model.callbacks import LossHistory
-from model.loss import loss_func
-
+from model.losses import loss_func
+from models import MLP
 
 
 
@@ -174,23 +174,22 @@ class Net(nn.Module):
 
 
 
-def fit_one_epoch(model, loss_func, loss_history, optimizer, epoch, max_epoch, train_iter, val_iter, verbose = True):
+def fit_one_epoch(model, loss_func, loss_history, optimizer, epoch, max_epoch, train_iter, verbose = True):
     metric_train = Accumulator(2)
-    metric_val = Accumulator(2)
     train_step = len(train_iter)
-    val_step = len(val_iter)
+
     if verbose:
         with tqdm(total = train_step, desc = f"Epoch [{epoch + 1}/{max_epoch}]") as pbar:
 
             if isinstance(model, nn.Module):
                 model.train()
                 
-            for X, y in train_iter:
-                optimizer.zero_grad()
-                y_hat = model(X)
+            for x, y in train_iter:
+                y_hat = model(x)
                 loss = loss_func(y_hat, y)
                 loss.backward()
                 optimizer.step()
+                optimizer.zero_grad()
                 metric_train.add(
                     float(loss * len(y)),
                     len(y)
@@ -199,34 +198,17 @@ def fit_one_epoch(model, loss_func, loss_history, optimizer, epoch, max_epoch, t
 
             train_loss = metric_train[0] / metric_train[1]
             pbar.set_postfix({"train_loss": round(train_loss, 4)})
-
-        with tqdm(total = val_step, desc = "Valid") as pbar:
-            if isinstance(model, nn.Module):
-                model.eval()
-
-            with torch.no_grad():
-                for X, y in val_iter:
-                    y_hat = model(X)
-                    loss = loss_func(y_hat, y)
-                    metric_val.add(
-                        float(loss * len(y)), 
-                        len(y)
-                    )
-                    pbar.update(1)
-
-            val_loss = metric_val[0] / metric_val[1]
-            pbar.set_postfix({"val_loss": round(val_loss, 4)})
     
     else:
         if isinstance(model, nn.Module):
                 model.train()
                 
         for X, y in train_iter:
-            optimizer.zero_grad()
             y_hat = model(X)
             loss = loss_func(y_hat, y)
             loss.backward()
             optimizer.step()
+            optimizer.zero_grad()
             metric_train.add(
                 float(loss * len(y)),
                 len(y)
@@ -234,21 +216,7 @@ def fit_one_epoch(model, loss_func, loss_history, optimizer, epoch, max_epoch, t
 
         train_loss = metric_train[0] / metric_train[1]
 
-        if isinstance(model, nn.Module):
-                model.eval()
-
-        with torch.no_grad():
-            for X, y in val_iter:
-                y_hat = model(X)
-                loss = loss_func(y_hat, y)
-                metric_val.add(
-                    float(loss * len(y)), 
-                    len(y)
-                )
-
-        val_loss = metric_val[0] / metric_val[1]
-
-    loss_history.loss_process(model, train_loss, val_loss)
+    loss_history.loss_process(model, train_loss)
 
 
 

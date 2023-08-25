@@ -70,6 +70,7 @@ class BaseData:
         copy : bool, default=False
             Whether to return `feature`.
         """
+        index = index.reshape(-1, 2)
         feature = np.apply_along_axis(
             lambda x:np.concatenate((self.count[x[0]], self.count[x[1]])), 
             1,
@@ -306,7 +307,7 @@ class UnlabeledDataDoublet(BaseData):
         """
         if index is None:
             index = self.pair_index
-            
+        index = index.reshape(-1, 2)
         feature = np.apply_along_axis(
             lambda x:np.concatenate((self.count1[x[0]], self.count2[x[1]])), 
             1,

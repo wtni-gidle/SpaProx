@@ -11,10 +11,12 @@ class GHMCLoss(nn.Module):
         super().__init__()
         self.bins = bins
         self.momentum = momentum
-        self.edges = torch.arange(bins + 1).float() / bins
+        edges = torch.arange(bins + 1).float() / bins
+        self.register_buffer("edges", edges)
         self.edges[-1] += 1e-6
         if momentum > 0:
-            self.acc_sum = torch.zeros(bins)
+            acc_sum = torch.zeros(bins)
+            self.register_buffer('acc_sum', acc_sum)
         self.num_class = num_class
         self.reduction = reduction
 
