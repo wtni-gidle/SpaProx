@@ -3,6 +3,8 @@ import numpy as np
 from itertools import combinations, product
 from . import utils
 from anndata import AnnData
+from functools import singledispatchmethod
+import torch
 
 
 class BaseData:
@@ -17,7 +19,7 @@ class BaseData:
         self.adata = adata
         if spot_index is None:
             spot_index = np.arange(len(adata))
-        self.spot_index = spot_index
+        self.spot_index = spot_index.astype(np.int32)
 
         self.spot2pair()
 
@@ -57,8 +59,8 @@ class BaseData:
         """
         self.data_index = np.take(self.data_index, obj, 0)
         self.pair_index = np.take(self.pair_index, obj, 0)
- 
-    def get_feature(self, index: np.ndarray, copy: bool = False) -> Optional[np.ndarray]:
+
+    def get_feature(self, index: Union[np.ndarray, torch.Tensor], copy: bool = False):
         """
         Get `feature` according to `index`.
 
@@ -71,11 +73,18 @@ class BaseData:
             Whether to return `feature`.
         """
         index = index.reshape(-1, 2)
-        feature = np.apply_along_axis(
-            lambda x:np.concatenate((self.count[x[0]], self.count[x[1]])), 
-            1,
-            index
-        )
+        if isinstance(self.count, np.ndarray):
+            feature = np.apply_along_axis(
+                lambda x:np.concatenate((self.count[x[0]], self.count[x[1]])), 
+                1,
+                index
+            )
+        elif isinstance(self.count, torch.Tensor):
+            first = self.count[index[:, 0]]
+            second = self.count[index[:, 1]]
+            feature = torch.cat((first, second), dim = 1)
+        else:
+            raise TypeError("type of count is unexpected")
         if copy:
             return feature
         else:
@@ -154,8 +163,8 @@ class UnlabeledDataUnit(BaseData):
             combinations(
                 range(len(self.spot_index)), 2
             )
-        ))
-        self.total_index = np.arange(len(self.pair_index_total))
+        )).astype(np.int32)
+        self.total_index = np.arange(len(self.pair_index_total)).astype(np.int32)
     
     def get_count(self, preprocess = True, **kwargs) -> None:
         """
@@ -165,9 +174,9 @@ class UnlabeledDataUnit(BaseData):
         if preprocess:
             adata_sub = self.preprocess(adata_sub, **kwargs)
 
-        self.count = adata_sub.to_df().values
+        self.count = adata_sub.to_df().values.astype(np.float32)
     
-    def get_feature(self, index: Optional[np.ndarray] = None, copy: bool = False) -> Optional[np.ndarray]:
+    def get_feature(self, index: Union[np.ndarray, torch.Tensor, None] = None, copy: bool = False):
         """
         Get `feature` according to `index`.
 
@@ -255,11 +264,11 @@ class UnlabeledDataDoublet(BaseData):
     ) -> None:
         if spot_index1 is None:
             spot_index1 = np.arange(len(adata1))
-        self.spot_index1 = spot_index1
+        self.spot_index1 = spot_index1.astype(np.int32)
 
         if spot_index2 is None:
             spot_index2 = np.arange(len(adata2))
-        self.spot_index2 = spot_index2
+        self.spot_index2 = spot_index2.astype(np.int32)
 
         self.adata1 = adata1
         self.adata2 = adata2
@@ -274,8 +283,8 @@ class UnlabeledDataDoublet(BaseData):
             product(
                 range(len(self.spot_index1)), range(len(self.spot_index2))
             )
-        ))
-        self.total_index = np.arange(len(self.pair_index_total))
+        )).astype(np.int32)
+        self.total_index = np.arange(len(self.pair_index_total)).astype(np.int32)
     
     def get_count(self, preprocess = True, **kwargs) -> None:
         """
@@ -290,10 +299,10 @@ class UnlabeledDataDoublet(BaseData):
         if preprocess:
             adata2_sub = self.preprocess(adata2_sub, **kwargs)
 
-        self.count1 = adata1_sub.to_df().values
-        self.count2 = adata2_sub.to_df().values
+        self.count1 = adata1_sub.to_df().values.astype(np.float32)
+        self.count2 = adata2_sub.to_df().values.astype(np.float32)
 
-    def get_feature(self, index: Optional[np.ndarray] = None, copy: bool = False) -> Optional[np.ndarray]:
+    def get_feature(self, index: Union[np.ndarray, torch.Tensor, None] = None, copy: bool = False):
         """
         Get `feature` according to `index`.
 
@@ -308,11 +317,18 @@ class UnlabeledDataDoublet(BaseData):
         if index is None:
             index = self.pair_index
         index = index.reshape(-1, 2)
-        feature = np.apply_along_axis(
-            lambda x:np.concatenate((self.count1[x[0]], self.count2[x[1]])), 
-            1,
-            index
-        )
+        if isinstance(self.count1, np.ndarray):
+            feature = np.apply_along_axis(
+                lambda x:np.concatenate((self.count1[x[0]], self.count2[x[1]])), 
+                1,
+                index
+            )
+        elif isinstance(self.count1, torch.Tensor):
+            first = self.count1[index[:, 0]]
+            second = self.count2[index[:, 1]]
+            feature = torch.cat((first, second), dim = 1)
+        else:
+            raise("type of count1 is unexpected")
         if copy:
             return feature
         else:
@@ -342,7 +358,7 @@ class LabeledData(BaseData):
         Calculate `distance`.
         """
         adata_sub = self.adata[self.spot_index].copy()
-        self.distance = utils.distance(adata_sub, pair_index = self.pair_index_total)
+        self.distance = utils.distance(adata_sub, pair_index = self.pair_index_total).astype(np.float32)
 
         self.label_total = self.distance <= self.neighbor_dis
 
@@ -386,7 +402,7 @@ class LabeledData(BaseData):
         self.data_index = np.concatenate((self.data_index, self.pos_index))
         self.pair_index = np.concatenate((self.pair_index, np.flip(self.pair_index_pos, axis = 1)))
 
-    def get_label(self, index: Optional[np.ndarray] = None, copy: bool = False) -> Optional[np.ndarray]:
+    def get_label(self, index: Union[np.ndarray, torch.Tensor, None] = None, copy: bool = False):
         """
         Get `label` according to `index`.
 
@@ -400,8 +416,12 @@ class LabeledData(BaseData):
         """
         if index is None:
             index = self.data_index
-
-        label = np.take(self.label_total, index, 0)
+        if isinstance(self.label_total, np.ndarray):
+            label = np.take(self.label_total, index, 0)
+        elif isinstance(self.label_total, torch.Tensor):
+            label = self.label_total[index].clone()
+        else:
+            raise("type of label_total is unexpected")
         if copy:
             return label
         else:
@@ -489,8 +509,8 @@ class LabeledDataUnit(LabeledData):
             combinations(
                 range(len(self.spot_index)), 2
             )
-        ))
-        self.total_index = np.arange(len(self.pair_index_total))
+        )).astype(np.int32)
+        self.total_index = np.arange(len(self.pair_index_total)).astype(np.int32)
 
     def get_count(self, preprocess: bool = True, **kwargs) -> None:
         """
@@ -500,9 +520,9 @@ class LabeledDataUnit(LabeledData):
         if preprocess:
             adata_sub = self.preprocess(adata_sub, **kwargs)
 
-        self.count = adata_sub.to_df().values
+        self.count = adata_sub.to_df().values.astype(np.float32)
 
-    def get_feature(self, index: Optional[np.ndarray] = None, copy: bool = False) -> Optional[np.ndarray]:
+    def get_feature(self, index: Union[np.ndarray, torch.Tensor, None] = None, copy: bool = False):
         """
         Get `feature` according to `index`.
 
@@ -616,8 +636,8 @@ class LabeledDataDoublet(LabeledData):
             product(
                 self.spot_index[0], self.spot_index[1]
             )
-        ))
-        self.total_index = np.arange(len(self.pair_index_total))
+        )).astype(np.int32)
+        self.total_index = np.arange(len(self.pair_index_total)).astype(np.int32)
     
     def get_count(self, preprocess = True, **kwargs) -> None:
         """
@@ -632,9 +652,9 @@ class LabeledDataDoublet(LabeledData):
         if preprocess:
             adata2_sub = self.preprocess(adata2_sub, **kwargs)
 
-        count1 = adata1_sub.to_df().values
-        count2 = adata2_sub.to_df().values
-        count = np.empty((self.adata.shape[0], count1.shape[1]))
+        count1 = adata1_sub.to_df().values.astype(np.float32)
+        count2 = adata2_sub.to_df().values.astype(np.float32)
+        count = np.empty((self.adata.shape[0], count1.shape[1]), dtype = np.float32)
         count[self.spot_index[0]] = count1
         count[self.spot_index[1]] = count2
         self.count = count
@@ -649,11 +669,11 @@ class LabeledDataDoublet(LabeledData):
         """
         Calculate `distance`.
         """
-        self.distance = utils.distance(self.adata, pair_index = self.pair_index_total)
+        self.distance = utils.distance(self.adata, pair_index = self.pair_index_total).astype(np.float32)
 
         self.label_total = self.distance <= self.neighbor_dis
 
-    def get_feature(self, index: Optional[np.ndarray] = None, copy: bool = False):
+    def get_feature(self, index: Union[np.ndarray, torch.Tensor, None] = None, copy: bool = False):
         """
         Get `feature` according to `index`.
 
