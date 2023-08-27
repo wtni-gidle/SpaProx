@@ -75,7 +75,7 @@ def cdist_rv(
 def knn(
     ldp: Union[LabeledDataUnit, LabeledDataDoublet],
     k: int = 5,
-    batch_size: int = 64,
+    batch_size: int = 128,
     device: int = 0
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     gpu_tracker.track() 
@@ -91,6 +91,8 @@ def knn(
     pos_feature = pos_loader[:]
     pos_dist = cdist_rv(pos_feature, pos_feature)
     threshold = torch.kthvalue(pos_dist, k = k + 1, keepdim = True)[0]
+    del pos_dist
+    torch.cuda.empty_cache()
 
     row_index_total = []
     col_index_total = []
