@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.utils import gen_batches
 from datasets.data_process import LabeledDataUnit, LabeledDataDoublet
 from copy import deepcopy
-from gpu_mem_track import MemTracker
-gpu_tracker = MemTracker() 
+# from gpu_mem_track import MemTracker
+# gpu_tracker = MemTracker() 
 
 class DataLoader():
     def __init__(
@@ -75,10 +75,9 @@ def cdist_rv(
 def knn(
     ldp: Union[LabeledDataUnit, LabeledDataDoublet],
     k: int = 5,
-    batch_size: int = 128,
+    batch_size: int = 2**9,
     device: int = 0
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    gpu_tracker.track() 
     device = get_device(device)
     label = ldp.get_label(copy = True)
     pos_index = np.where(label)[0].tolist()
@@ -98,7 +97,6 @@ def knn(
     col_index_total = []
     for batch_r, pos_feat in pos_loader:
         for batch_c, neg_feat in neg_loader:
-            gpu_tracker.track() 
             dist = cdist_rv(pos_feat, neg_feat)
             row_index, col_index = torch.nonzero(torch.le(dist, threshold[batch_r]), as_tuple = True)
             row_index.add_(batch_r.start)
