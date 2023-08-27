@@ -85,7 +85,7 @@ def knn(
 
     ldp = to_device(ldp, device)
     pos_loader = DataLoader(ldp, pos_index, batch_size = batch_size)
-    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**20)
+    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**22)
     
     print("ldp:", round(asizeof(ldp)/1024/1024, 0))
     print("pos_loader:", round(asizeof(pos_loader)/1024/1024, 0))
@@ -105,7 +105,7 @@ def knn(
             print("pos_feat:", round(asizeof(pos_feat)/1024/1024, 0))
         for batch_c, neg_feat in neg_loader:
             if i==1:
-                print("neg_feat:", round(asizeof(neg_feat)/1024/1024, 0))
+                print("neg_feat:", round(asizeof(neg_feat)/1024/1024, 4))
             dist = cdist_rv(pos_feat, neg_feat)
             row_index, col_index = torch.nonzero(torch.le(dist, threshold[batch_r]), as_tuple = True)
             row_index.add_(batch_r.start)
@@ -115,7 +115,7 @@ def knn(
             i+=1
             row_index_total.extend(row_index.tolist())
             col_index_total.extend(col_index.tolist())
-        
+            torch.cuda.empty_cache()
     marked_row_index = np.array(pos_index)[row_index_total]
     marked_col_index = np.array(neg_index)[col_index_total]
     BD_neg_index = np.unique(marked_col_index)
