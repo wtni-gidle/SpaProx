@@ -26,6 +26,8 @@ class LabeledDataset(Dataset):
             label = torch.from_numpy(label).long()
             feature = torch.from_numpy(feature).float()
 
+        feature = feature.reshape(-1, feature.shape[-1])
+
         return feature, label
     
     def __len__(self):
@@ -47,6 +49,8 @@ class UnlabeledDataset(Dataset):
         
         if isinstance(feature, np.ndarray):
             feature = torch.from_numpy(feature).float()
+        
+        return feature
 
     def __len__(self):
         return len(self.udp.data_index)
