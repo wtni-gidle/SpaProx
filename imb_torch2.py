@@ -85,7 +85,7 @@ def knn(
 
     ldp = to_device(ldp, device)
     pos_loader = DataLoader(ldp, pos_index, batch_size = batch_size)
-    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**22)
+    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**21)
     
     print("ldp:", round(asizeof(ldp)/1024/1024, 0))
     print("pos_loader:", round(asizeof(pos_loader)/1024/1024, 0))

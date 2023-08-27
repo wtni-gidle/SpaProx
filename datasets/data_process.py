@@ -80,11 +80,10 @@ class BaseData:
                 index
             )
         elif isinstance(self.count, torch.Tensor):
-            first = self.count[index[:, 0]]
-            second = self.count[index[:, 1]]
-            feature = torch.cat((first, second), dim = 1)
+            feature = torch.cat((self.count[index[:, 0]], self.count[index[:, 1]]), dim = 1)
         else:
             raise TypeError("type of count is unexpected")
+        
         if copy:
             return feature
         else:
@@ -324,11 +323,10 @@ class UnlabeledDataDoublet(BaseData):
                 index
             )
         elif isinstance(self.count1, torch.Tensor):
-            first = self.count1[index[:, 0]]
-            second = self.count2[index[:, 1]]
-            feature = torch.cat((first, second), dim = 1)
+            feature = torch.cat((self.count1[index[:, 0]], self.count2[index[:, 1]]), dim = 1)
         else:
             raise("type of count1 is unexpected")
+        
         if copy:
             return feature
         else:
