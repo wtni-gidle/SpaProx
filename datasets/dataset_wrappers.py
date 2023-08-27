@@ -19,7 +19,7 @@ class LabeledDataset(Dataset):
     def __getitem__(self, index) -> Tuple[torch.Tensor, torch.Tensor]:
         label_idx = self.ldp.data_index[index]
         feat_idx = self.ldp.pair_index[index]
-        label = self.ldp.get_label(label_idx, copy = True)
+        label = self.ldp.get_label(label_idx, copy = True).long()
         feature = self.ldp.get_feature(feat_idx, copy = True)
 
         if isinstance(label, np.ndarray):

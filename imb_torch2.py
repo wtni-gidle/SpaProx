@@ -103,7 +103,7 @@ def knn(
             col_index.add_(batch_c.start)
             row_index_total.extend(row_index.tolist())
             col_index_total.extend(col_index.tolist())
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
     marked_row_index = np.array(pos_index)[row_index_total]
     marked_col_index = np.array(neg_index)[col_index_total]
     BD_neg_index = np.unique(marked_col_index)
