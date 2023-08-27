@@ -101,17 +101,14 @@ def knn(
     col_index_total = []
     i=1
     for batch_r, pos_feat in pos_loader:
-        if i==1:
-            print("pos_feat:", round(asizeof(pos_feat)/1024/1024, 0))
+        print("pos_feat:", round(asizeof(pos_feat)/1024/1024, 0))
         for batch_c, neg_feat in neg_loader:
-            if i==1:
-                print("neg_feat:", round(asizeof(neg_feat)/1024/1024, 4))
+            print("neg_feat:", round(asizeof(neg_feat)/1024/1024, 4))
             dist = cdist_rv(pos_feat, neg_feat)
             row_index, col_index = torch.nonzero(torch.le(dist, threshold[batch_r]), as_tuple = True)
             row_index.add_(batch_r.start)
             col_index.add_(batch_c.start)
-            if i==1:
-                print("row_index:", round(asizeof(row_index)/1024/1024, 0))
+            print("row_index:", round(asizeof(row_index)/1024/1024, 0))
             i+=1
             row_index_total.extend(row_index.tolist())
             col_index_total.extend(col_index.tolist())
