@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.utils import gen_batches
 from datasets.data_process import LabeledDataUnit, LabeledDataDoublet
 from copy import deepcopy
+from pympler.asizeof import asizeof
 
 
 class DataLoader():
@@ -85,19 +86,33 @@ def knn(
     ldp = to_device(ldp, device)
     pos_loader = DataLoader(ldp, pos_index, batch_size = batch_size)
     neg_loader = DataLoader(ldp, neg_index, batch_size = 2**20)
+    
+    print("ldp:", round(asizeof(ldp)/1024/1024, 0))
+    print("pos_loader:", round(asizeof(pos_loader)/1024/1024, 0))
+    print("neg_loader:", round(asizeof(neg_loader)/1024/1024, 0))
 
     pos_feature = pos_loader[:]
     pos_dist = cdist_rv(pos_feature, pos_feature)
     threshold = torch.kthvalue(pos_dist, k = k + 1, keepdim = True)[0]
 
+    print("pos_dist:", round(asizeof(pos_dist)/1024/1024, 0))
+
     row_index_total = []
     col_index_total = []
+    i=1
     for batch_r, pos_feat in pos_loader:
+        if i==1:
+            print("pos_feat:", round(asizeof(pos_feat)/1024/1024, 0))
         for batch_c, neg_feat in neg_loader:
+            if i==1:
+                print("neg_feat:", round(asizeof(neg_feat)/1024/1024, 0))
             dist = cdist_rv(pos_feat, neg_feat)
             row_index, col_index = torch.nonzero(torch.le(dist, threshold[batch_r]), as_tuple = True)
             row_index.add_(batch_r.start)
             col_index.add_(batch_c.start)
+            if i==1:
+                print("row_index:", round(asizeof(row_index)/1024/1024, 0))
+            i+=1
             row_index_total.extend(row_index.tolist())
             col_index_total.extend(col_index.tolist())
         
