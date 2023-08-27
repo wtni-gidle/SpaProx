@@ -32,8 +32,6 @@ def fit_one_epoch(model: nn.Module, loss_func, loss_history, optimizer, epoch, m
                 x = x.to(device)
                 y = y.to(device)
                 y_hat = model(x)
-                print(y_hat.shape)
-                print(y.shape)
                 loss = loss_func(y_hat, y)
                 loss.backward()
                 optimizer.step()

@@ -49,6 +49,8 @@ class UnlabeledDataset(Dataset):
         
         if isinstance(feature, np.ndarray):
             feature = torch.from_numpy(feature).float()
+        if feature.shape[0] == 1:
+            feature = feature.reshape(feature.shape[-1])
         
         return feature
 
