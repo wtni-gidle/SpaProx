@@ -74,7 +74,7 @@ def cdist_rv(
 def knn(
     ldp: Union[LabeledDataUnit, LabeledDataDoublet],
     k: int = 5,
-    batch_size: int = 24,
+    batch_size: int = 64,
     device: int = 0
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     device = get_device(device)
@@ -84,7 +84,7 @@ def knn(
 
     ldp = to_device(ldp, device)
     pos_loader = DataLoader(ldp, pos_index, batch_size = batch_size)
-    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**21)
+    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**20)
 
     pos_feature = pos_loader[:]
     pos_dist = cdist_rv(pos_feature, pos_feature)
