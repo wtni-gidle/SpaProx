@@ -86,7 +86,7 @@ def knn(
 
     ldp = to_device(ldp, device)
     pos_loader = DataLoader(ldp, pos_index, batch_size = batch_size)
-    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**21)
+    neg_loader = DataLoader(ldp, neg_index, batch_size = 2**20)
 
     pos_feature = pos_loader[:]
     pos_dist = cdist_rv(pos_feature, pos_feature)
