@@ -25,8 +25,8 @@ class LabeledDataset(Dataset):
         if isinstance(label, np.ndarray):
             label = torch.from_numpy(label).long()
             feature = torch.from_numpy(feature).float()
-
-        feature = feature.reshape(-1, feature.shape[-1])
+        if feature.shape[0] == 1:
+            feature = feature.reshape(feature.shape[-1])
 
         return feature, label
     
