@@ -11,7 +11,7 @@ from tqdm import tqdm
 from model.utils import DeviceDataLoader, Accumulator
 from model.callbacks import LossHistory
 from model.losses import loss_func
-from models import MLP
+from model.models import MLP
 from datasets.dataset_wrappers import LabeledDataset, UnlabeledDataset
 from imb_torch2 import get_device
 
