@@ -151,7 +151,7 @@ class MetricStorage():
 
         return path
     
-    def add(self, train_loss, eval_metrics = None):
+    def add(self, train_loss, eval_metrics: dict = None):
         self.curr_epoch += 1
 
         self.train_loss.append(train_loss)
@@ -166,7 +166,7 @@ class MetricStorage():
                 for name in self.eval_metrics:
                     self.eval_metrics[name] += [eval_metrics[name]]
             
-            for k, v in eval_metrics:
+            for k, v in eval_metrics.items():
                 with open(os.path.join(self.save_path, f"epoch_val_{k}.txt"), "a") as f:
                     f.write("%.4f" % v)
                     f.write("\n")
