@@ -160,10 +160,10 @@ class MetricStorage():
             f.write("\n")
             
         if not self.train_only:
-            if self.eval_metrics:
+            if not self.eval_metrics:
                 self.eval_metrics = {k: [v] for k, v in eval_metrics}
             else:
-                for name in self.eval_metrics:
+                for name in self.eval_metrics.keys():
                     self.eval_metrics[name] += [eval_metrics[name]]
             
             for k, v in eval_metrics.items():

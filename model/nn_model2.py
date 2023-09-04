@@ -154,8 +154,10 @@ class NNClassifier():
             self.model.eval()
 
         with torch.no_grad():
-            result = list(tqdm([(self.model(x), y) for x, y in eval_iter], desc = "Evaluating"))
-            y_hat, y_true = zip(*result)
+            pbar = tqdm(total = len(eval_iter), desc = "Evaluating")
+            result = [(self.model(x), y, pbar.update(1)) for x, y in eval_iter]
+            # result = list(tqdm([(self.model(x), y) for x, y in eval_iter], desc = "Evaluating"))
+            y_hat, y_true, _ = zip(*result)
             y_hat = torch.cat(y_hat)
             y_true = torch.cat(y_true)
             
