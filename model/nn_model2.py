@@ -163,7 +163,8 @@ class NNClassifier():
             
             # loss
             eval_loss = self.model.loss_fn(y_hat, y_true).item()
-
+            pbar.set_postfix({"val_loss": "%.4f" % eval_loss})
+            pbar.close()
             # 转化为概率，后续计算
             y_pred = F.softmax(y_hat, dim = 1)
             y_pred = y_pred.to(torch.device("cpu")).numpy()
