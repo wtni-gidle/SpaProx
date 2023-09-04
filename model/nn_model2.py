@@ -24,7 +24,8 @@ class NNClassifier():
         metrics_dict = None,
         gpu_id = -1
     ):
-        self.args = args
+        if args is None:
+            self.args = TrainingArguments()
         self.max_epoch = max_epoch
         self.validation = validation
         self.early_stopping = early_stopping
@@ -78,6 +79,7 @@ class NNClassifier():
             #               train_iter, verbose = self.verbose)
             if self.validation:
                 eval_metrics = self._eval_one_epoch(eval_iter, metrics_dict = self.metrics_dict)
+                print(eval_metrics)
 
             path = self.metric_storage.update(self.model, train_loss, eval_metrics)
 

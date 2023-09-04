@@ -28,6 +28,6 @@ class TrainingArguments:
 
     def print_args(self):
         args = [a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))]
-        args_dict = {a: getattr(a) for a in args}
+        args_dict = {a: getattr(self, a) for a in args}
 
         return args_dict
