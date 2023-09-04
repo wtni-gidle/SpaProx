@@ -3,7 +3,6 @@ import numpy as np
 from itertools import combinations, product
 from . import utils
 from anndata import AnnData
-from functools import singledispatchmethod
 import torch
 
 

@@ -32,6 +32,8 @@ class MLP(nn.Module):
         self.output = nn.Sequential(
             nn.Linear(hidden_sizes[-1], num_classes)
         )
+        #* 每个模型必须定义一个损失函数作为属性
+        self.loss_fn = nn.CrossEntropyLoss()
 
     def FC_layer(self, in_features, out_features, p) -> nn.Sequential:
         return nn.Sequential(
@@ -47,6 +49,8 @@ class MLP(nn.Module):
         x = self.output(x)
 
         return x
+    
+
 
 
 class Customformer(nn.Module):
