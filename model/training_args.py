@@ -4,7 +4,7 @@ class TrainingArguments:
     learning_rate: float = 0.001
     train_batch_size: int = 128
     eval_batch_size: int = 512
-    num_workers: int = 2
+    num_workers: int = 0
     eval_ratio: float = 0.2
     estp_delta: float = 0.0
     estp_patience: int = 7
@@ -22,11 +22,11 @@ class TrainingArguments:
         for k, v in args_dict.items():
             setattr(self, k, v)
         
-    def add_argument(self, **kwargs):
+    def add_arguments(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def print_args(self):
+    def print_arguments(self):
         args = [a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))]
         args_dict = {a: getattr(self, a) for a in args}
 

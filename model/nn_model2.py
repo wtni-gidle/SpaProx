@@ -22,10 +22,10 @@ class NNClassifier():
         validation = True,
         early_stopping = False,
         metrics_dict = None,
-        gpu_id = -1
+        gpu_id = -1,
+        log_dir = "logs"
     ):
-        if args is None:
-            self.args = TrainingArguments()
+        self.args = TrainingArguments() if args is None else args
         self.max_epoch = max_epoch
         self.validation = validation
         self.early_stopping = early_stopping
@@ -55,7 +55,7 @@ class NNClassifier():
             )
             assert self.validation, "validation must be True if using early stopping"
         
-        self.metric_storage = MetricStorage(log_dir = "logs", train_only = not self.validation)
+        self.metric_storage = MetricStorage(log_dir = log_dir, train_only = not self.validation)
         
     def fit(self, train_dataset, eval_dataset = None):
         self.model.to(self.device)
