@@ -75,11 +75,8 @@ class NNClassifier():
         for self.curr_epoch in range(self.max_epoch):
             eval_metrics = None
             train_loss = self._fit_one_epoch(train_iter)
-            # fit_one_epoch(self.net_, self.loss_func_, self.loss_history, self.optimizer_, epoch, self.max_iter, 
-            #               train_iter, verbose = self.verbose)
             if self.validation:
                 eval_metrics = self._eval_one_epoch(eval_iter, metrics_dict = self.metrics_dict)
-                print(eval_metrics)
 
             path = self.metric_storage.update(self.model, train_loss, eval_metrics)
 
