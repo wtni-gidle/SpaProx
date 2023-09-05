@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.utils import data
 from tqdm import tqdm
 
-from .utils import Accumulator
+from .utils import Accumulator, DeviceDataLoader
 from .models import MLP
 from imb_torch2 import get_device
 from .callbacks import MetricStorage, EarlyStopping
@@ -44,8 +44,6 @@ class NNClassifier():
             weight_decay = 0,
             amsgrad = False
         )
-        # self.loss_history = LossHistory(log_dir = "logs", max_epoch = max_iter, early_stopping = self.early_stopping, 
-        #                            patience = patience, verbose = verbose)
 
         if self.early_stopping:
             self.estp = EarlyStopping(
@@ -105,8 +103,6 @@ class NNClassifier():
 
         `np.ndarray` -> `DataLoader`
         """
-        # dataset = LabeledDataset(ldp) if labeled else UnlabeledDataset(ldp)
-
         data_iter = data.DataLoader(
             dataset, 
             batch_size = batch_size, 
@@ -114,6 +110,8 @@ class NNClassifier():
             num_workers = num_workers,
             pin_memory = False
         )
+
+        data_iter = DeviceDataLoader(data_iter, self.device)
 
         return data_iter
     
@@ -126,8 +124,6 @@ class NNClassifier():
 
         with tqdm(total = train_num_steps, desc = f"Epoch [{self.curr_epoch + 1}/{self.max_epoch}]") as pbar:
             for x, y in train_iter:
-                x = x.to(self.device)
-                y = y.to(self.device)
                 y_hat = self.model(x)
                 loss = self.model.loss_fn(y_hat, y)
                 loss.backward()
@@ -153,7 +149,6 @@ class NNClassifier():
         with torch.no_grad():
             pbar = tqdm(total = len(eval_iter), desc = "Evaluating")
             result = [(self.model(x), y, pbar.update(1)) for x, y in eval_iter]
-            # result = list(tqdm([(self.model(x), y) for x, y in eval_iter], desc = "Evaluating"))
             y_hat, y_true, _ = zip(*result)
             y_hat = torch.cat(y_hat)
             y_true = torch.cat(y_true)
