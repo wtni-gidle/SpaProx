@@ -191,4 +191,6 @@ class Customformer(nn.Module):
         x = self.flatten(x)
         x = self.classifier(x)
 
+        return x
+
     
