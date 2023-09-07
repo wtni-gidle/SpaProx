@@ -175,13 +175,13 @@ class EncoderLayer(nn.Module):
         return x
 
 class Customformer(nn.Module):
-    def __init__(self, d_model, num_heads, attn_drop_rate, hidden_drop_rate, d_hidden, num_features) -> None:
+    def __init__(self, d_model, num_heads, attn_drop_rate, hidden_drop_rate, d_hidden, num_features, num_classes) -> None:
         super().__init__()
         self.proj_ascend = nn.Linear(1, d_model)
         self.encoder = EncoderLayer(d_model, num_heads, attn_drop_rate,  hidden_drop_rate, d_hidden)
         self.proj_reduce = nn.Linear(d_model, 1)
         self.flatten = nn.Flatten()
-        self.classifier = MLP([num_features, 64])
+        self.classifier = MLP([num_features, 64], num_classes)
         self.loss_fn = self.classifier.loss_fn
 
     def forward(self, x):
