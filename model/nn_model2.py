@@ -8,23 +8,21 @@ from .utils import Accumulator, DeviceDataLoader
 from .models import MLP
 from imb_torch2 import get_device
 from .callbacks import MetricStorage, EarlyStopping
-from .training_args import TrainingArguments
+from .config_args import TrainingArguments
 
 class NNClassifier():
     def __init__(
         self, 
+        model: nn.Module, 
         args: TrainingArguments = None,
-        num_features = 400,
-        num_classes = 2,
-        hidden_sizes = [400, 60],
-        dropout_rate = None,
-        max_epoch = 30,
-        validation = True,
-        early_stopping = False,
+        max_epoch: int = 30,
+        validation: bool = True,
+        early_stopping: bool = False,
         metrics_dict = None,
         gpu_id = -1,
         log_dir = "logs"
     ):
+        self.model = model
         self.args = TrainingArguments() if args is None else args
         self.max_epoch = max_epoch
         self.validation = validation
@@ -32,9 +30,6 @@ class NNClassifier():
         self.metrics_dict = metrics_dict
 
         self.device = get_device(gpu_id)
-
-        hidden_sizes = [num_features] + list(hidden_sizes)
-        self.model = MLP(hidden_sizes, num_classes = num_classes, dropout_rate = dropout_rate)
 
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),

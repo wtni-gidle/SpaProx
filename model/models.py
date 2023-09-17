@@ -1,22 +1,23 @@
 import torch
 import torch.nn as nn
 from typing import Optional
-from math import sqrt
+import math
 # 普通的多层感知机，含dropout
 class MLP(nn.Module):
     """
-    Two-layer feed-forward neural network, using Dropout.
+    Multi-layer Perceptron with dropout.
     """
     def __init__(
         self, 
+        in_features: int, 
         hidden_sizes: list, 
         num_classes: int = 2, 
         dropout_rate: Optional[list] = None
     ) -> None:
         super().__init__()
 
-        self.num_layers = len(hidden_sizes)
-
+        self.num_layers = len(hidden_sizes) + 1
+        layer_sizes = [in_features] + hidden_sizes
         if dropout_rate is None:
             dropout_rate = [0.2] + [0.5] * (self.num_layers - 2)
         
@@ -26,16 +27,16 @@ class MLP(nn.Module):
             setattr(
                 self, 
                 "FC_{}".format(i + 1), 
-                self.FC_layer(hidden_sizes[i], hidden_sizes[i + 1], dropout_rate[i])
+                self._make_FC_layer(layer_sizes[i], layer_sizes[i + 1], dropout_rate[i])
             )
 
         self.output = nn.Sequential(
-            nn.Linear(hidden_sizes[-1], num_classes)
+            nn.Linear(layer_sizes[-1], num_classes)
         )
         #* 每个模型必须定义一个损失函数作为属性
         self.loss_fn = nn.CrossEntropyLoss()
 
-    def FC_layer(self, in_features, out_features, p) -> nn.Sequential:
+    def _make_FC_layer(self, in_features, out_features, p) -> nn.Sequential:
         return nn.Sequential(
             nn.Linear(in_features, out_features),
             nn.ReLU(),
@@ -49,6 +50,7 @@ class MLP(nn.Module):
         x = self.output(x)
 
         return x
+
     
 
 # class Attention(nn.Module):
@@ -193,4 +195,25 @@ class Customformer(nn.Module):
 
         return x
 
-    
+
+
+
+class PositionalEncoding(nn.Module):
+    # 第0个是null，其后为1，2，3……
+    def __init__(self, d_model, max_len = 5000) -> None:
+        super().__init__()
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0.0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0.0, d_model, 2) *
+                             -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.emb = nn.Embedding.from_pretrained(pe)
+
+    def forward(self, x):
+        x = self.emb(x)
+
+        return x
+
+
+
